@@ -94,14 +94,69 @@
       <h4>参与人员 (<span id="partCount">0</span>)</h4>
       <ul id="partList" class="participant-list"></ul>
     </div>
+
+    <div class="sidebar-section playback-section">
+      <h4>回放录制</h4>
+      <div class="playback-status">
+        <span class="rec-dot"></span>
+        <span id="recStatusText">录制中</span>
+        <span id="recTimeText" class="rec-time">00:00</span>
+      </div>
+      <button id="openPlaybackBtn" class="small-btn playback-open-btn">打开回放</button>
+    </div>
   </aside>
 </main>
+
+<div id="playbackPanel" class="playback-panel hidden">
+  <div class="playback-header">
+    <h3>标注回放</h3>
+    <button id="closePlaybackBtn" class="playback-close-btn" title="关闭">&times;</button>
+  </div>
+  <div class="playback-body">
+    <section class="video-area playback-video-area">
+      <canvas id="playbackCanvas" class="annotation-canvas"></canvas>
+      <div id="playbackEmpty" class="waiting-screen">
+        <h3>暂无录制内容</h3>
+        <p>标注操作将被自动记录</p>
+      </div>
+    </section>
+  </div>
+  <div class="playback-controls">
+    <div class="playback-progress-row">
+      <span id="pbCurrentTime" class="pb-time">00:00</span>
+      <div id="pbProgressBar" class="pb-progress-bar">
+        <div id="pbProgressFill" class="pb-progress-fill"></div>
+        <div id="pbProgressHandle" class="pb-progress-handle"></div>
+      </div>
+      <span id="pbTotalTime" class="pb-time">00:00</span>
+    </div>
+    <div class="playback-btn-row">
+      <button id="pbStepBack" class="pb-ctrl-btn" title="后退5秒">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="19 20 9 12 19 4 19 20"/><line x1="5" y1="4" x2="5" y2="20"/></svg>
+      </button>
+      <button id="pbPlayBtn" class="pb-ctrl-btn pb-play-btn" title="播放/暂停">
+        <svg id="pbPlayIcon" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        <svg id="pbPauseIcon" viewBox="0 0 24 24" fill="currentColor" style="display:none"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+      </button>
+      <button id="pbStepForward" class="pb-ctrl-btn" title="快进5秒">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="4" x2="19" y2="20"/></svg>
+      </button>
+      <div class="pb-speed-group">
+        <button class="pb-speed-btn" data-speed="0.5">0.5x</button>
+        <button class="pb-speed-btn active" data-speed="1">1x</button>
+        <button class="pb-speed-btn" data-speed="2">2x</button>
+        <button class="pb-speed-btn" data-speed="4">4x</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script src="/js/utils.js"></script>
 <script src="/js/ui.js"></script>
 <script src="/js/signaling.js"></script>
 <script src="/js/webrtc.js"></script>
 <script src="/js/annotation.js"></script>
+<script src="/js/playback.js"></script>
 <script src="/js/room.js"></script>
 </body>
 </html>

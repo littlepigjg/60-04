@@ -73,6 +73,9 @@ class SignalingHandler {
       case 'ice-candidate':
         this.handleIceCandidate(ws, msg);
         break;
+      case 'get-action-log':
+        this.handleGetActionLog(ws);
+        break;
     }
   }
 
@@ -223,10 +226,26 @@ class SignalingHandler {
       timestamp: Date.now()
     };
 
+    const relTime = Date.now() - room.startTime;
+
     if (annotation.__delete) {
       this.roomManager.deleteAnnotation(ws.roomCode, annotation.id);
+      this.roomManager.addActionLog(ws.roomCode, {
+        type: 'delete',
+        time: relTime,
+        id: annotation.id,
+        authorId: ws.id,
+        authorName: ws.name
+      });
     } else {
       this.roomManager.addAnnotation(ws.roomCode, annotation);
+      this.roomManager.addActionLog(ws.roomCode, {
+        type: 'add',
+        time: relTime,
+        data: annotation,
+        authorId: ws.id,
+        authorName: ws.name
+      });
     }
 
     this.broadcastToRoom(ws.roomCode, {
@@ -239,7 +258,14 @@ class SignalingHandler {
     if (!ws.roomCode) return;
     const room = this.roomManager.getRoom(ws.roomCode);
     if (!room) return;
+    const relTime = Date.now() - room.startTime;
     this.roomManager.clearAnnotations(ws.roomCode);
+    this.roomManager.addActionLog(ws.roomCode, {
+      type: 'clear',
+      time: relTime,
+      authorId: ws.id,
+      authorName: ws.name
+    });
     this.broadcastToRoom(ws.roomCode, { type: 'clear-annotations' });
   }
 
@@ -269,6 +295,19 @@ class SignalingHandler {
         candidate: msg.candidate
       }));
     }
+  }
+
+  handleGetActionLog(ws) {
+    if (!ws.roomCode) return;
+    const actionLog = this.roomManager.getActionLog(ws.roomCode);
+    const startTime = this.roomManager.getStartTime(ws.roomCode);
+    const duration = Date.now() - startTime;
+    ws.send(JSON.stringify({
+      type: 'action-log',
+      actionLog,
+      startTime,
+      duration
+    }));
   }
 }
 

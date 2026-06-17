@@ -94,6 +94,10 @@ class SignalingClient {
     this.send({ type: 'clear-annotations' });
   }
 
+  requestActionLog() {
+    this.send({ type: 'get-action-log' });
+  }
+
   toggleAudio(enabled) {
     this.send({ type: 'toggle-audio', enabled });
   }

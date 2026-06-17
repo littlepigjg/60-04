@@ -591,3 +591,262 @@ body {
     max-height: 45vh;
   }
 }
+
+/* ===== Playback Section in Sidebar ===== */
+.playback-section {
+  border-top: 1px solid #f3f4f6;
+}
+
+.playback-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  font-size: 13px;
+  color: #374151;
+}
+
+.rec-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ef4444;
+  animation: recPulse 1.2s ease-in-out infinite;
+}
+
+@keyframes recPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.rec-time {
+  margin-left: auto;
+  font-family: monospace;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.playback-open-btn {
+  width: 100%;
+  background: #667eea;
+  color: #fff;
+  border-color: #667eea;
+}
+
+.playback-open-btn:hover {
+  background: #5a6fd6;
+}
+
+/* ===== Playback Panel Overlay ===== */
+.playback-panel {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: #111827;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  transition: opacity 0.25s, transform 0.25s;
+}
+
+.playback-panel.hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(20px);
+}
+
+.playback-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 24px;
+  background: #1f2937;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.playback-header h3 {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.playback-close-btn {
+  background: none;
+  border: none;
+  color: #9ca3af;
+  font-size: 28px;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0 4px;
+  transition: color 0.15s;
+}
+
+.playback-close-btn:hover {
+  color: #fff;
+}
+
+.playback-body {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  overflow: hidden;
+  padding: 0;
+}
+
+.playback-video-area {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.playback-video-area .annotation-canvas {
+  cursor: default;
+}
+
+/* ===== Playback Controls ===== */
+.playback-controls {
+  flex-shrink: 0;
+  background: #1f2937;
+  padding: 16px 24px 20px;
+}
+
+.playback-progress-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.pb-time {
+  font-size: 12px;
+  font-family: monospace;
+  color: #9ca3af;
+  min-width: 42px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.pb-progress-bar {
+  flex: 1;
+  height: 6px;
+  background: #374151;
+  border-radius: 3px;
+  position: relative;
+  cursor: pointer;
+  transition: height 0.15s;
+}
+
+.pb-progress-bar:hover {
+  height: 10px;
+}
+
+.pb-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #667eea, #764ba2);
+  border-radius: 3px;
+  width: 0%;
+  transition: none;
+  pointer-events: none;
+}
+
+.pb-progress-handle {
+  position: absolute;
+  top: 50%;
+  left: 0%;
+  width: 14px;
+  height: 14px;
+  background: #fff;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  opacity: 0;
+  transition: opacity 0.15s;
+  pointer-events: none;
+}
+
+.pb-progress-bar:hover .pb-progress-handle {
+  opacity: 1;
+}
+
+.playback-btn-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.pb-ctrl-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #d1d5db;
+  transition: all 0.15s;
+}
+
+.pb-ctrl-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+.pb-ctrl-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+.pb-play-btn {
+  width: 52px;
+  height: 52px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: #fff;
+}
+
+.pb-play-btn:hover {
+  background: linear-gradient(135deg, #5a6fd6, #6a4295);
+  color: #fff;
+}
+
+.pb-play-btn svg {
+  width: 22px;
+  height: 22px;
+}
+
+.pb-speed-group {
+  display: flex;
+  gap: 4px;
+  margin-left: 16px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
+  padding: 4px;
+}
+
+.pb-speed-btn {
+  background: transparent;
+  border: none;
+  color: #9ca3af;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.pb-speed-btn:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.pb-speed-btn.active {
+  background: #667eea;
+  color: #fff;
+}

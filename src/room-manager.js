@@ -19,6 +19,8 @@ class RoomManager {
       code,
       hostId: null,
       annotations: [],
+      actionLog: [],
+      startTime: Date.now(),
       createdAt: Date.now()
     });
 
@@ -70,6 +72,23 @@ class RoomManager {
   getAnnotations(code) {
     const room = this.rooms.get(code);
     return room ? room.annotations : [];
+  }
+
+  addActionLog(code, entry) {
+    const room = this.rooms.get(code);
+    if (room) {
+      room.actionLog.push(entry);
+    }
+  }
+
+  getActionLog(code) {
+    const room = this.rooms.get(code);
+    return room ? room.actionLog : [];
+  }
+
+  getStartTime(code) {
+    const room = this.rooms.get(code);
+    return room ? room.startTime : 0;
   }
 }
 

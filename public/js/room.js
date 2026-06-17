@@ -25,6 +25,27 @@
   const audioBtn = $('#audioBtn');
   const leaveBtn = $('#leaveBtn');
 
+  const openPlaybackBtn = $('#openPlaybackBtn');
+  const recTimeText = $('#recTimeText');
+  const playbackPanel = $('#playbackPanel');
+  const closePlaybackBtn = $('#closePlaybackBtn');
+  const playbackCanvas = $('#playbackCanvas');
+  const playbackEmpty = $('#playbackEmpty');
+  const pbPlayBtn = $('#pbPlayBtn');
+  const pbPlayIcon = $('#pbPlayIcon');
+  const pbPauseIcon = $('#pbPauseIcon');
+  const pbStepBack = $('#pbStepBack');
+  const pbStepForward = $('#pbStepForward');
+  const pbCurrentTime = $('#pbCurrentTime');
+  const pbTotalTime = $('#pbTotalTime');
+  const pbProgressBar = $('#pbProgressBar');
+  const pbProgressFill = $('#pbProgressFill');
+  const pbProgressHandle = $('#pbProgressHandle');
+
+  let playback = null;
+  let recTimerInterval = null;
+  let roomStartTime = null;
+
   roleTag.textContent = mode === 'host' ? '主持人' : '观看者';
   roleTag.className = 'role-tag ' + (mode === 'host' ? 'host' : 'viewer');
 
@@ -49,6 +70,17 @@
 
   annotation = new AnnotationManager(annotCanvas, signaling);
   setupAnnotationTools(annotation);
+
+  playback = new PlaybackManager(playbackCanvas);
+
+  recTimerInterval = setInterval(() => {
+    if (roomStartTime) {
+      const elapsed = Date.now() - roomStartTime;
+      recTimeText.textContent = playback.formatTime(elapsed);
+    }
+  }, 1000);
+
+  setupPlaybackUI();
 
   webrtc = new WebRTCManager(signaling, signaling.clientId);
   webrtc.onStreamAdded = (peerId, stream) => {
@@ -96,12 +128,14 @@
   signaling.on('room-created', (msg) => {
     signaling.roomCode = msg.roomCode;
     roomCodeText.textContent = msg.roomCode;
+    roomStartTime = Date.now();
     UI.toast('房间创建成功，房间码: ' + msg.roomCode);
   });
 
   signaling.on('room-joined', (msg) => {
     signaling.roomCode = msg.roomCode;
     roomCodeText.textContent = msg.roomCode;
+    roomStartTime = Date.now();
     if (msg.annotations && msg.annotations.length) {
       annotation.loadInitial(msg.annotations);
     }
@@ -177,6 +211,13 @@
     UI.toast('与服务器连接断开');
   });
 
+  signaling.on('action-log', (msg) => {
+    if (playback) {
+      playback.loadActionLog(msg.actionLog, msg.duration);
+      playbackEmpty.style.display = msg.actionLog.length ? 'none' : 'flex';
+    }
+  });
+
   function renderParticipants(info) {
     if (!info) return;
     partCount.textContent = info.clients.length;
@@ -211,6 +252,101 @@
     });
   }
 
+  function setupPlaybackUI() {
+    openPlaybackBtn.addEventListener('click', () => {
+      signaling.requestActionLog();
+      playbackPanel.classList.remove('hidden');
+      setTimeout(() => {
+        playback.setupCanvas();
+      }, 50);
+    });
+
+    closePlaybackBtn.addEventListener('click', () => {
+      playbackPanel.classList.add('hidden');
+      if (playback.playing) playback.pause();
+    });
+
+    pbPlayBtn.addEventListener('click', () => {
+      playback.togglePlay();
+    });
+
+    pbStepBack.addEventListener('click', () => {
+      playback.stepBackward(5000);
+    });
+
+    pbStepForward.addEventListener('click', () => {
+      playback.stepForward(5000);
+    });
+
+    $$('.pb-speed-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        $$('.pb-speed-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        playback.setSpeed(parseFloat(btn.dataset.speed));
+      });
+    });
+
+    let isDragging = false;
+
+    function getSeekPercent(e) {
+      const rect = pbProgressBar.getBoundingClientRect();
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      return Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+    }
+
+    pbProgressBar.addEventListener('mousedown', (e) => {
+      isDragging = true;
+      playback.seekPercent(getSeekPercent(e));
+    });
+
+    pbProgressBar.addEventListener('touchstart', (e) => {
+      isDragging = true;
+      playback.seekPercent(getSeekPercent(e));
+    }, { passive: true });
+
+    window.addEventListener('mousemove', (e) => {
+      if (isDragging) playback.seekPercent(getSeekPercent(e));
+    });
+
+    window.addEventListener('touchmove', (e) => {
+      if (isDragging) playback.seekPercent(getSeekPercent(e));
+    }, { passive: true });
+
+    window.addEventListener('mouseup', () => { isDragging = false; });
+    window.addEventListener('touchend', () => { isDragging = false; });
+
+    document.addEventListener('keydown', (e) => {
+      if (playbackPanel.classList.contains('hidden')) return;
+      if (e.code === 'Space') {
+        e.preventDefault();
+        playback.togglePlay();
+      } else if (e.code === 'ArrowLeft') {
+        playback.stepBackward(5000);
+      } else if (e.code === 'ArrowRight') {
+        playback.stepForward(5000);
+      }
+    });
+
+    playback.onTimeUpdate = (time) => {
+      pbCurrentTime.textContent = playback.formatTime(time);
+      const pct = playback.totalDuration > 0 ? (time / playback.totalDuration * 100) : 0;
+      pbProgressFill.style.width = pct + '%';
+      pbProgressHandle.style.left = pct + '%';
+    };
+
+    playback.onPlayStateChange = (isPlaying) => {
+      pbPlayIcon.style.display = isPlaying ? 'none' : 'block';
+      pbPauseIcon.style.display = isPlaying ? 'block' : 'none';
+    };
+
+    playback.onLoad = (duration) => {
+      pbTotalTime.textContent = playback.formatTime(duration);
+      pbCurrentTime.textContent = '00:00';
+      pbProgressFill.style.width = '0%';
+      pbProgressHandle.style.left = '0%';
+    };
+  }
+
   const scheduleResize = Utils.debounce(() => {
     annotation._setupCanvas();
   }, 100);
@@ -220,6 +356,8 @@
   function cleanup() {
     try { signaling.leaveRoom(); } catch (e) { /* ignore */ }
     try { webrtc.destroy(); } catch (e) { /* ignore */ }
+    try { if (playback) playback.stop(); } catch (e) { /* ignore */ }
+    try { clearInterval(recTimerInterval); } catch (e) { /* ignore */ }
   }
   window.addEventListener('beforeunload', cleanup);
 
